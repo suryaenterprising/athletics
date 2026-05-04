@@ -15,7 +15,7 @@ const Contact = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
           <div className="glass-panel" style={{ padding: '2rem' }}>
             <h3 style={{ color: 'var(--primary)', marginBottom: '1rem' }}>Email Us</h3>
-            <p style={{ fontSize: '1.2rem' }}>athletics@iiti.ac.in</p>
+            <p style={{ fontSize: '1.2rem' }}>athletics.iiti@gmail.com</p>
           </div>
 
           <div className="glass-panel" style={{ padding: '2rem' }}>
