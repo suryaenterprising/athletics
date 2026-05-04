@@ -102,14 +102,42 @@ const updateAthlete = async (req, res) => {
   try {
     const athlete = await Athlete.findById(req.params.id);
 
-    if (athlete) {
-      Object.assign(athlete, req.body);
-      const updatedAthlete = await athlete.save();
-      res.json(updatedAthlete);
-    } else {
+    if (!athlete) {
       res.status(404);
       throw new Error('Athlete not found');
     }
+
+    let photoUrl = athlete.photoUrl;
+    let photoPublicId = athlete.photoPublicId;
+
+    if (req.file) {
+      const uploadFromBuffer = (req) => {
+        return new Promise((resolve, reject) => {
+          let cld_upload_stream = cloudinary.uploader.upload_stream(
+            { folder: "athletics_profiles" },
+            (error, result) => {
+              if (result) resolve(result);
+              else reject(error);
+            }
+          );
+          streamifier.createReadStream(req.file.buffer).pipe(cld_upload_stream);
+        });
+      };
+
+      const result = await uploadFromBuffer(req);
+      photoUrl = result.secure_url;
+      photoPublicId = result.public_id;
+    }
+
+    const updatedData = {
+      ...req.body,
+      photoUrl,
+      photoPublicId
+    };
+
+    Object.assign(athlete, updatedData);
+    const updatedAthlete = await athlete.save();
+    res.json(updatedAthlete);
   } catch (error) {
     res.status(400);
     throw new Error(error.message);

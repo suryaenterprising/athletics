@@ -10,9 +10,12 @@ const {
 const { protect, admin } = require('../middlewares/authMiddleware');
 const multer = require('multer');
 
-// Configure multer for memory storage
+// Configure multer for memory storage with 150KB limit
 const storage = multer.memoryStorage();
-const upload = multer({ storage });
+const upload = multer({ 
+  storage,
+  limits: { fileSize: 150 * 1024 } // 150KB
+});
 
 router.route('/')
   .get(getAthletes)
@@ -20,7 +23,7 @@ router.route('/')
 
 router.route('/:id')
   .get(getAthleteById)
-  .put(protect, admin, updateAthlete)
+  .put(protect, admin, upload.single('photo'), updateAthlete)
   .delete(protect, admin, deleteAthlete);
 
 module.exports = router;

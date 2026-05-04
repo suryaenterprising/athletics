@@ -31,7 +31,14 @@ const RecordModal = ({ isOpen, onClose, type, onSuccess, availableEvents, editDa
   const handleChange = (e) => {
     const { name, value, type: inputType, files } = e.target;
     if (inputType === 'file') {
-      setFormData(prev => ({ ...prev, [name]: files[0] }));
+      const file = files[0];
+      if (file && file.size > 150 * 1024) {
+        setError('File size too large! Please upload an image smaller than 150KB.');
+        e.target.value = ''; // Reset input
+        return;
+      }
+      setError(''); // Clear error if file is okay
+      setFormData(prev => ({ ...prev, [name]: file }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
