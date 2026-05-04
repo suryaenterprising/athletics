@@ -25,6 +25,7 @@ app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/athletes', require('./routes/athleteRoutes'));
 app.use('/api/events', require('./routes/eventRoutes'));
 app.use('/api/achievements', require('./routes/achievementRoutes'));
+app.use('/api/messages', require('./routes/messageRoutes'));
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {
