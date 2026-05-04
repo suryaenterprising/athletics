@@ -21,6 +21,7 @@ const Navbar = () => {
         <Link to="/" style={{ color: 'var(--text-main)', fontWeight: 500 }}>Home</Link>
         <Link to="/athletes" style={{ color: 'var(--text-main)', fontWeight: 500 }}>Athletes</Link>
         <Link to="/events" style={{ color: 'var(--text-main)', fontWeight: 500 }}>Events</Link>
+        <Link to="/contact" style={{ color: 'var(--text-main)', fontWeight: 500 }}>Contact</Link>
         <Link to="/admin/login" className="btn btn-primary" style={{ padding: '0.5rem 1rem' }}>Admin Portal</Link>
       </div>
     </nav>
