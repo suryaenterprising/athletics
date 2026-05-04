@@ -1,21 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import AthleteCard from '../components/AthleteCard';
-
-// Temporary Mock Data for UI demonstration
-const mockAthletes = [
-  { id: 1, name: 'Surya Pratap', department: 'Computer Science', category: 'Student', graduationYear: 2026, photoUrl: 'https://images.unsplash.com/photo-1552674605-db6ffd4facb5?auto=format&fit=crop&w=400&q=80' },
-  { id: 2, name: 'Aditi Sharma', department: 'Electrical', category: 'Student', graduationYear: 2025, photoUrl: 'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?auto=format&fit=crop&w=400&q=80' },
-  { id: 3, name: 'Rahul Verma', department: 'Mechanical', category: 'Alumni', graduationYear: 2022, photoUrl: 'https://images.unsplash.com/photo-1526509867162-5b0c0d1b4b33?auto=format&fit=crop&w=400&q=80' },
-  { id: 4, name: 'Coach Singh', department: 'Sports', category: 'Coach', photoUrl: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&w=400&q=80' },
-];
+import api from '../services/api';
 
 const AthleteDirectory = () => {
-  const [athletes, setAthletes] = useState(mockAthletes);
+  const [athletes, setAthletes] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('All');
 
-  // Logic to fetch from API will go here
-  // useEffect(() => { ... fetch from /api/athletes ... }, [])
+  useEffect(() => {
+    const fetchAthletes = async () => {
+      try {
+        const { data } = await api.get('/athletes');
+        setAthletes(data);
+      } catch (error) {
+        console.error('Failed to fetch athletes', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAthletes();
+  }, []);
 
   const filteredAthletes = athletes.filter(athlete => {
     const matchesSearch = athlete.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -76,17 +81,22 @@ const AthleteDirectory = () => {
         </select>
       </div>
 
-      {/* Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '2rem' }}>
-        {filteredAthletes.map(athlete => (
-          <AthleteCard key={athlete.id || athlete._id} athlete={athlete} />
-        ))}
-      </div>
-      
-      {filteredAthletes.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
-          No athletes found matching your criteria.
-        </div>
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--primary)' }}>Loading athletes...</div>
+      ) : (
+        <>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '2rem' }}>
+            {filteredAthletes.map(athlete => (
+              <AthleteCard key={athlete._id || athlete.id} athlete={athlete} />
+            ))}
+          </div>
+          
+          {filteredAthletes.length === 0 && (
+            <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
+              No athletes found matching your criteria.
+            </div>
+          )}
+        </>
       )}
     </div>
   );

@@ -1,9 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import api from '../services/api';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('athletes');
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchTabData = async () => {
+      setLoading(true);
+      try {
+        const response = await api.get(`/${activeTab}`);
+        setData(response.data);
+      } catch (error) {
+        if (error.response?.status === 401) {
+          handleLogout(); // Token expired or invalid
+        }
+        console.error(`Failed to fetch ${activeTab}`, error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchTabData();
+  }, [activeTab]);
 
   const handleLogout = () => {
     localStorage.removeItem('adminToken');
@@ -66,11 +88,20 @@ const AdminDashboard = () => {
 
         <div className="card" style={{ padding: '2rem', backgroundColor: 'var(--bg-dark)' }}>
           <p style={{ color: 'var(--text-muted)' }}>
-            This is the placeholder for the {activeTab} data table. Once connected to the backend API, 
-            this will display a full CRUD table allowing you to add, edit, or delete records.
+            This is the placeholder for the {activeTab} data table. The actual CRUD interfaces will be built here.
           </p>
-          <div style={{ marginTop: '2rem', height: '300px', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
-            Data Table goes here
+          <div style={{ marginTop: '2rem', minHeight: '300px', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: 'var(--radius-md)', padding: '2rem' }}>
+            {loading ? (
+              <div style={{ textAlign: 'center', color: 'var(--primary)' }}>Loading {activeTab}...</div>
+            ) : (
+              <div>
+                <h3 style={{ marginBottom: '1rem', color: 'var(--text-main)' }}>Total {activeTab} found: {data.length}</h3>
+                <pre style={{ backgroundColor: 'rgba(0,0,0,0.3)', padding: '1rem', borderRadius: 'var(--radius-sm)', overflowX: 'auto', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                  {JSON.stringify(data.slice(0, 2), null, 2)}
+                  {data.length > 2 && '\n\n... and more'}
+                </pre>
+              </div>
+            )}
           </div>
         </div>
       </div>

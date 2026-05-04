@@ -1,18 +1,29 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import api from '../services/api';
 
 const AdminLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    // Placeholder login logic
+    setError('');
+    
     if (email && password) {
-      // Simulate token storage
-      localStorage.setItem('adminToken', 'placeholder_token');
-      navigate('/admin/dashboard');
+      try {
+        setLoading(true);
+        const { data } = await api.post('/auth/login', { email, password });
+        localStorage.setItem('adminToken', data.token);
+        navigate('/admin/dashboard');
+      } catch (err) {
+        setError(err.response?.data?.message || 'Invalid credentials');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -25,6 +36,7 @@ const AdminLogin = () => {
         </div>
         
         <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          {error && <div style={{ color: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.1)', padding: '0.75rem', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>{error}</div>}
           <div>
             <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Email</label>
             <input 
@@ -61,8 +73,8 @@ const AdminLogin = () => {
               }} 
             />
           </div>
-          <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '1rem' }}>
-            Login
+          <button type="submit" disabled={loading} className="btn btn-primary" style={{ width: '100%', marginTop: '1rem', opacity: loading ? 0.7 : 1 }}>
+            {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
       </div>

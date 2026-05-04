@@ -1,19 +1,30 @@
-import React, { useState } from 'react';
-
-// Temporary Mock Data
-const mockEvents = [
-  { id: 1, name: '100m Sprint', type: 'Track', genderCategory: 'Boys' },
-  { id: 2, name: 'Long Jump', type: 'Field', genderCategory: 'Girls' },
-  { id: 3, name: '4x100m Relay', type: 'Relay', genderCategory: 'Mixed' }
-];
-
-const mockAchievements = [
-  { id: 1, eventId: 1, year: 2024, first: 'John Doe (10.5s)', second: 'Surya Pratap (10.8s)', third: 'Rahul Verma (11.0s)' },
-  { id: 2, eventId: 2, year: 2024, first: 'Aditi Sharma (5.2m)', second: 'Priya Singh (4.9m)', third: 'Neha Gupta (4.8m)' }
-];
+import React, { useState, useEffect } from 'react';
+import api from '../services/api';
 
 const Events = () => {
-  const [selectedYear, setSelectedYear] = useState('2024');
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
+  const [events, setEvents] = useState([]);
+  const [achievements, setAchievements] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [eventsRes, achievementsRes] = await Promise.all([
+          api.get('/events'),
+          api.get(`/achievements?year=${selectedYear}`)
+        ]);
+        setEvents(eventsRes.data);
+        setAchievements(achievementsRes.data);
+      } catch (error) {
+        console.error('Failed to fetch data', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [selectedYear]);
 
   return (
     <div style={{ padding: '4rem 5%', minHeight: '80vh' }}>
@@ -44,57 +55,60 @@ const Events = () => {
       </div>
 
       {/* Events Tables */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
-        {mockEvents.map(event => {
-          const achievement = mockAchievements.find(a => a.eventId === event.id && a.year.toString() === selectedYear);
+      {loading ? (
+        <div style={{ textAlign: 'center', color: 'var(--primary)' }}>Loading records...</div>
+      ) : events.length === 0 ? (
+        <div style={{ textAlign: 'center', color: 'var(--text-muted)' }}>No events registered yet.</div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
+          {events.map(event => {
+            const achievement = achievements.find(a => a.event && a.event._id === event._id);
 
-          return (
-            <div key={event.id} className="card glass-panel" style={{ overflow: 'hidden' }}>
-              <div style={{ padding: '1.5rem', backgroundColor: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                <h2 style={{ fontSize: '1.5rem', display: 'flex', justifyContent: 'space-between' }}>
-                  <span>{event.name} <span style={{ fontSize: '1rem', color: 'var(--text-muted)', fontWeight: 400 }}>({event.genderCategory})</span></span>
-                  <span style={{ fontSize: '1rem', color: 'var(--primary)' }}>{event.type}</span>
-                </h2>
-              </div>
-              
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                  <thead>
-                    <tr style={{ backgroundColor: 'rgba(0,0,0,0.2)' }}>
-                      <th style={{ padding: '1rem 1.5rem', color: 'var(--text-muted)' }}>Position</th>
-                      <th style={{ padding: '1rem 1.5rem', color: 'var(--text-muted)' }}>Athlete & Record</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {achievement ? (
-                      <>
-                        <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                          <td style={{ padding: '1rem 1.5rem', color: '#ffd700', fontWeight: 'bold' }}>🥇 1st Place</td>
-                          <td style={{ padding: '1rem 1.5rem' }}>{achievement.first}</td>
-                        </tr>
-                        <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                          <td style={{ padding: '1rem 1.5rem', color: '#c0c0c0', fontWeight: 'bold' }}>🥈 2nd Place</td>
-                          <td style={{ padding: '1rem 1.5rem' }}>{achievement.second}</td>
-                        </tr>
-                        <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                          <td style={{ padding: '1rem 1.5rem', color: '#cd7f32', fontWeight: 'bold' }}>🥉 3rd Place</td>
-                          <td style={{ padding: '1rem 1.5rem' }}>{achievement.third}</td>
-                        </tr>
-                      </>
-                    ) : (
-                      <tr>
-                        <td colSpan="2" style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-                          No records found for {selectedYear}.
-                        </td>
+            return (
+              <div key={event._id} className="card glass-panel" style={{ overflow: 'hidden' }}>
+                <div style={{ padding: '1.5rem', backgroundColor: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                  <h2 style={{ fontSize: '1.5rem', display: 'flex', justifyContent: 'space-between' }}>
+                    <span>{event.name} <span style={{ fontSize: '1rem', color: 'var(--text-muted)', fontWeight: 400 }}>({event.genderCategory})</span></span>
+                    <span style={{ fontSize: '1rem', color: 'var(--primary)' }}>{event.type}</span>
+                  </h2>
+                </div>
+                
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                    <thead>
+                      <tr style={{ backgroundColor: 'rgba(0,0,0,0.2)' }}>
+                        <th style={{ padding: '1rem 1.5rem', color: 'var(--text-muted)' }}>Position</th>
+                        <th style={{ padding: '1rem 1.5rem', color: 'var(--text-muted)' }}>Athlete & Record</th>
                       </tr>
-                    )}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {achievement && achievement.positions && achievement.positions.length > 0 ? (
+                        achievement.positions.map((pos) => (
+                          <tr key={pos._id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                            <td style={{ padding: '1rem 1.5rem', color: pos.position === 1 ? '#ffd700' : pos.position === 2 ? '#c0c0c0' : '#cd7f32', fontWeight: 'bold' }}>
+                              {pos.position === 1 ? '🥇 1st Place' : pos.position === 2 ? '🥈 2nd Place' : '🥉 3rd Place'}
+                            </td>
+                            <td style={{ padding: '1rem 1.5rem' }}>
+                              {pos.athlete ? pos.athlete.name : 'Unknown Athlete'} 
+                              {pos.performanceRecord && ` (${pos.performanceRecord})`}
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan="2" style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                            No records found for {selectedYear}.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };
