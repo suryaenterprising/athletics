@@ -1,32 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 
-const AddRecordModal = ({ isOpen, onClose, type, onSuccess, availableEvents, availableAthletes }) => {
+const RecordModal = ({ isOpen, onClose, type, onSuccess, availableEvents, editData }) => {
   const [formData, setFormData] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Reset form when type changes
   useEffect(() => {
-    if (type === 'athletes') {
-      setFormData({ name: '', rollNo: '', department: '', category: 'Student', graduationYear: new Date().getFullYear(), medicalStatus: 'Fit' });
-    } else if (type === 'events') {
-      setFormData({ name: '', type: 'Track', genderCategory: 'Boys', description: '' });
-    } else if (type === 'achievements') {
-      setFormData({ 
-        event: availableEvents.length > 0 ? availableEvents[0]._id : '', 
-        year: new Date().getFullYear(), 
-        gender: 'Boys',
-        positions: [] 
-      });
+    if (editData) {
+      setFormData(editData);
+    } else {
+      // Reset form for adding
+      if (type === 'athletes') {
+        setFormData({ name: '', rollNo: '', department: '', category: 'Student', graduationYear: new Date().getFullYear(), medicalStatus: 'Fit' });
+      } else if (type === 'events') {
+        setFormData({ name: '', type: 'Track', genderCategory: 'Boys', description: '' });
+      } else if (type === 'achievements') {
+        setFormData({ 
+          event: availableEvents?.length > 0 ? availableEvents[0]._id : '', 
+          year: new Date().getFullYear(), 
+          gender: 'Boys',
+          positions: [] 
+        });
+      }
     }
-  }, [type, availableEvents]);
+  }, [type, editData, availableEvents, isOpen]);
 
   if (!isOpen) return null;
 
   const handleChange = (e) => {
-    const { name, value, type, files } = e.target;
-    if (type === 'file') {
+    const { name, value, type: inputType, files } = e.target;
+    if (inputType === 'file') {
       setFormData(prev => ({ ...prev, [name]: files[0] }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
@@ -42,17 +46,30 @@ const AddRecordModal = ({ isOpen, onClose, type, onSuccess, availableEvents, ava
       if (type === 'athletes') {
         const data = new FormData();
         Object.keys(formData).forEach(key => {
+          // Don't append if it's the old photo URL string during edit
+          if (key === 'photo' && typeof formData[key] === 'string') return;
           data.append(key, formData[key]);
         });
-        await api.post(`/${type}`, data, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
+
+        if (editData) {
+          await api.put(`/${type}/${editData._id}`, data, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+          });
+        } else {
+          await api.post(`/${type}`, data, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+          });
+        }
       } else {
-        await api.post(`/${type}`, formData);
+        if (editData) {
+          await api.put(`/${type}/${editData._id}`, formData);
+        } else {
+          await api.post(`/${type}`, formData);
+        }
       }
       
-      onSuccess(); // Refresh data
-      onClose(); // Close modal
+      onSuccess();
+      onClose();
     } catch (err) {
       setError(err.response?.data?.message || 'Something went wrong');
     } finally {
@@ -67,7 +84,9 @@ const AddRecordModal = ({ isOpen, onClose, type, onSuccess, availableEvents, ava
       display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
     }}>
       <div className="card glass-panel" style={{ padding: '2rem', width: '100%', maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto' }}>
-        <h2 style={{ marginBottom: '1.5rem', textTransform: 'capitalize' }}>Add New {type.slice(0, -1)}</h2>
+        <h2 style={{ marginBottom: '1.5rem', textTransform: 'capitalize' }}>
+          {editData ? 'Edit' : 'Add New'} {type.slice(0, -1)}
+        </h2>
         
         {error && <div style={{ color: '#ef4444', marginBottom: '1rem', padding: '0.5rem', backgroundColor: 'rgba(239, 68, 68, 0.1)', borderRadius: 'var(--radius-sm)' }}>{error}</div>}
         
@@ -92,9 +111,8 @@ const AddRecordModal = ({ isOpen, onClose, type, onSuccess, availableEvents, ava
               <div><label>Home Address</label><input name="homeAddress" value={formData.homeAddress || ''} onChange={handleChange} className="form-input" /></div>
               <div><label>Bio</label><textarea name="bio" value={formData.bio || ''} onChange={handleChange} className="form-input" style={{ minHeight: '100px' }} /></div>
               <div>
-                <label>Athlete Photo</label>
+                <label>Athlete Photo {editData && '(Leave empty to keep current)'}</label>
                 <input type="file" name="photo" accept="image/*" onChange={handleChange} className="form-input" style={{ padding: '0.5rem' }} />
-                <p style={{fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem'}}>Optional. Must have Cloudinary keys set in backend .env to work.</p>
               </div>
             </>
           )}
@@ -125,8 +143,9 @@ const AddRecordModal = ({ isOpen, onClose, type, onSuccess, availableEvents, ava
             <>
               <div>
                 <label>Event</label>
-                <select required name="event" value={formData.event || ''} onChange={handleChange} className="form-input">
-                  {availableEvents.map(evt => <option key={evt._id} value={evt._id}>{evt.name} ({evt.genderCategory})</option>)}
+                <select required name="event" value={typeof formData.event === 'object' ? formData.event._id : formData.event || ''} onChange={handleChange} className="form-input">
+                  <option value="">Select Event</option>
+                  {availableEvents?.map(evt => <option key={evt._id} value={evt._id}>{evt.name} ({evt.genderCategory})</option>)}
                 </select>
               </div>
               <div><label>Year</label><input required type="number" name="year" value={formData.year || ''} onChange={handleChange} className="form-input" /></div>
@@ -137,14 +156,13 @@ const AddRecordModal = ({ isOpen, onClose, type, onSuccess, availableEvents, ava
                   <option value="Girls">Girls</option>
                 </select>
               </div>
-              <p style={{fontSize: '0.8rem', color: 'var(--text-muted)'}}>* Note: Position adding is simplified for this demo. API accepts standard positions array.</p>
             </>
           )}
 
           <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
             <button type="button" onClick={onClose} className="btn" style={{ flex: 1, backgroundColor: 'transparent', border: '1px solid rgba(255,255,255,0.2)' }}>Cancel</button>
             <button type="submit" disabled={loading} className="btn btn-primary" style={{ flex: 1 }}>
-              {loading ? 'Saving...' : 'Save'}
+              {loading ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
         </form>
@@ -161,4 +179,4 @@ const AddRecordModal = ({ isOpen, onClose, type, onSuccess, availableEvents, ava
   );
 };
 
-export default AddRecordModal;
+export default RecordModal;
