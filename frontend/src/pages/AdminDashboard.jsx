@@ -80,7 +80,7 @@ const AdminDashboard = () => {
         </div>
         
         <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          {['athletes', 'events', 'achievements'].map((tab) => (
+          {['athletes', 'events', 'achievements', 'messages'].map((tab) => (
             <li key={tab}>
               <button 
                 onClick={() => setActiveTab(tab)}
@@ -115,7 +115,9 @@ const AdminDashboard = () => {
       <div style={{ flex: 1, padding: '3rem 5%' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
           <h1 style={{ fontSize: '2.5rem', textTransform: 'capitalize' }}>Manage {activeTab}</h1>
-          <button className="btn btn-primary" onClick={handleAddNew}>+ Add New</button>
+          {activeTab !== 'messages' && (
+            <button className="btn btn-primary" onClick={handleAddNew}>+ Add New</button>
+          )}
         </div>
 
         <div className="card" style={{ padding: '2rem', backgroundColor: 'var(--bg-dark)' }}>
@@ -147,21 +149,37 @@ const AdminDashboard = () => {
                           )}
                           {activeTab === 'events' && item.name}
                           {activeTab === 'achievements' && (item.event?.name || 'Unknown Event')}
+                          {activeTab === 'messages' && (
+                            <div>
+                              <strong style={{ color: 'var(--text-main)' }}>{item.name}</strong>
+                              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{item.email}</div>
+                            </div>
+                          )}
                         </td>
                         <td style={{ padding: '1rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
                           {activeTab === 'athletes' && `${item.category} | ${item.department}`}
                           {activeTab === 'events' && `${item.type} | ${item.genderCategory}`}
                           {activeTab === 'achievements' && `Year: ${item.year} | Gender: ${item.gender}`}
+                          {activeTab === 'messages' && (
+                            <div style={{ maxWidth: '300px', whiteSpace: 'normal', wordBreak: 'break-word' }}>
+                              {item.message}
+                              <div style={{ fontSize: '0.75rem', marginTop: '0.5rem', opacity: 0.6 }}>
+                                {new Date(item.createdAt).toLocaleString()}
+                              </div>
+                            </div>
+                          )}
                         </td>
                         <td style={{ padding: '1rem' }}>
                           <div style={{ display: 'flex', gap: '0.5rem' }}>
-                            <button 
-                              onClick={() => handleEdit(item)}
-                              className="btn" 
-                              style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem', backgroundColor: 'rgba(255,255,255,0.05)' }}
-                            >
-                              Edit
-                            </button>
+                            {activeTab !== 'messages' && (
+                              <button 
+                                onClick={() => handleEdit(item)}
+                                className="btn" 
+                                style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem', backgroundColor: 'rgba(255,255,255,0.05)' }}
+                              >
+                                Edit
+                              </button>
+                            )}
                             <button 
                               onClick={() => handleDelete(item._id)}
                               className="btn" 
