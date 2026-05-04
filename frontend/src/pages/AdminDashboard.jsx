@@ -1,29 +1,38 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import AddRecordModal from '../components/AddRecordModal';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('athletes');
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [eventsList, setEventsList] = useState([]);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchTabData = async () => {
-      setLoading(true);
-      try {
-        const response = await api.get(`/${activeTab}`);
-        setData(response.data);
-      } catch (error) {
-        if (error.response?.status === 401) {
-          handleLogout(); // Token expired or invalid
-        }
-        console.error(`Failed to fetch ${activeTab}`, error);
-      } finally {
-        setLoading(false);
+  const fetchTabData = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get(`/${activeTab}`);
+      setData(response.data);
+      
+      // If we are on achievements tab, fetch events for the dropdown
+      if (activeTab === 'achievements' && eventsList.length === 0) {
+        const evts = await api.get('/events');
+        setEventsList(evts.data);
       }
-    };
-    
+    } catch (error) {
+      if (error.response?.status === 401) {
+        handleLogout(); // Token expired or invalid
+      }
+      console.error(`Failed to fetch ${activeTab}`, error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchTabData();
   }, [activeTab]);
 
@@ -83,7 +92,7 @@ const AdminDashboard = () => {
       <div style={{ flex: 1, padding: '3rem 5%' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
           <h1 style={{ fontSize: '2.5rem', textTransform: 'capitalize' }}>Manage {activeTab}</h1>
-          <button className="btn btn-primary">+ Add New</button>
+          <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>+ Add New</button>
         </div>
 
         <div className="card" style={{ padding: '2rem', backgroundColor: 'var(--bg-dark)' }}>
@@ -105,6 +114,14 @@ const AdminDashboard = () => {
           </div>
         </div>
       </div>
+
+      <AddRecordModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        type={activeTab} 
+        onSuccess={fetchTabData}
+        availableEvents={eventsList}
+      />
     </div>
   );
 };
