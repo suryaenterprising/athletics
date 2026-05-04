@@ -1,4 +1,6 @@
 const Athlete = require('../models/Athlete');
+const cloudinary = require('../config/cloudinary');
+const streamifier = require('streamifier');
 
 // @desc    Get all athletes
 // @route   GET /api/athletes
@@ -47,7 +49,43 @@ const getAthleteById = async (req, res) => {
 // @access  Private/Admin
 const createAthlete = async (req, res) => {
   try {
-    const athlete = new Athlete(req.body);
+    let photoUrl = 'https://via.placeholder.com/300x400';
+    let photoPublicId = '';
+
+    // Handle image upload if file is present
+    if (req.file) {
+      const uploadFromBuffer = (req) => {
+        return new Promise((resolve, reject) => {
+          let cld_upload_stream = cloudinary.uploader.upload_stream(
+            { folder: "athletics_profiles" },
+            (error, result) => {
+              if (result) {
+                resolve(result);
+              } else {
+                reject(error);
+              }
+            }
+          );
+          streamifier.createReadStream(req.file.buffer).pipe(cld_upload_stream);
+        });
+      };
+
+      try {
+        const result = await uploadFromBuffer(req);
+        photoUrl = result.secure_url;
+        photoPublicId = result.public_id;
+      } catch (uploadError) {
+        return res.status(400).json({ message: 'Image upload failed. Please check your Cloudinary credentials in .env' });
+      }
+    }
+
+    const athleteData = {
+      ...req.body,
+      photoUrl,
+      photoPublicId
+    };
+
+    const athlete = new Athlete(athleteData);
     const createdAthlete = await athlete.save();
     res.status(201).json(createdAthlete);
   } catch (error) {

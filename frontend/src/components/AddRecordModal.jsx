@@ -25,8 +25,12 @@ const AddRecordModal = ({ isOpen, onClose, type, onSuccess, availableEvents, ava
   if (!isOpen) return null;
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const { name, value, type, files } = e.target;
+    if (type === 'file') {
+      setFormData(prev => ({ ...prev, [name]: files[0] }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -35,7 +39,18 @@ const AddRecordModal = ({ isOpen, onClose, type, onSuccess, availableEvents, ava
     setError('');
 
     try {
-      await api.post(`/${type}`, formData);
+      if (type === 'athletes') {
+        const data = new FormData();
+        Object.keys(formData).forEach(key => {
+          data.append(key, formData[key]);
+        });
+        await api.post(`/${type}`, data, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+      } else {
+        await api.post(`/${type}`, formData);
+      }
+      
       onSuccess(); // Refresh data
       onClose(); // Close modal
     } catch (err) {
@@ -70,6 +85,11 @@ const AddRecordModal = ({ isOpen, onClose, type, onSuccess, availableEvents, ava
                   <option value="Alumni">Alumni</option>
                   <option value="Coach">Coach</option>
                 </select>
+              </div>
+              <div>
+                <label>Athlete Photo</label>
+                <input type="file" name="photo" accept="image/*" onChange={handleChange} className="form-input" style={{ padding: '0.5rem' }} />
+                <p style={{fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem'}}>Optional. Must have Cloudinary keys set in backend .env to work.</p>
               </div>
             </>
           )}
