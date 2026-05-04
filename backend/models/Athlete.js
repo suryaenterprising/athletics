@@ -9,6 +9,10 @@ const athleteSchema = new mongoose.Schema({
   photoUrl: { type: String, default: 'https://via.placeholder.com/150' },
   photoPublicId: { type: String }, // For Cloudinary deletion
   bio: { type: String },
+  contact: { type: String },
+  homeAddress: { type: String },
+  whatsappNumber: { type: String },
+  email: { type: String },
   isActive: { type: Boolean, default: true },
   medicalStatus: { type: String, enum: ['Fit', 'Injured', 'Rehabilitating'], default: 'Fit' }
 }, { timestamps: true });

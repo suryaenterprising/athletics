@@ -57,6 +57,19 @@ const AthleteProfile = () => {
             </p>
           </div>
 
+          <div style={{ padding: '1.5rem', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 'var(--radius-md)' }}>
+            <h3 style={{ marginBottom: '1rem', color: 'var(--text-main)' }}>Contact Information</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', fontSize: '0.9rem' }}>
+              {athlete.email && <div><span style={{color: 'var(--text-muted)'}}>Email:</span> <br/> {athlete.email}</div>}
+              {athlete.contact && <div><span style={{color: 'var(--text-muted)'}}>Phone:</span> <br/> {athlete.contact}</div>}
+              {athlete.whatsappNumber && <div><span style={{color: 'var(--text-muted)'}}>WhatsApp:</span> <br/> {athlete.whatsappNumber}</div>}
+              {athlete.homeAddress && <div style={{gridColumn: 'span 2'}}><span style={{color: 'var(--text-muted)'}}>Address:</span> <br/> {athlete.homeAddress}</div>}
+              {(!athlete.email && !athlete.contact && !athlete.whatsappNumber && !athlete.homeAddress) && 
+                <div style={{color: 'var(--text-muted)'}}>No contact information provided.</div>
+              }
+            </div>
+          </div>
+
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
             <div className="card" style={{ padding: '1rem', textAlign: 'center' }}>
               <span style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text-muted)' }}>Medical Status</span>

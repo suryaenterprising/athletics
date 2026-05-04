@@ -78,14 +78,19 @@ const AddRecordModal = ({ isOpen, onClose, type, onSuccess, availableEvents, ava
               <div><label>Name</label><input required name="name" value={formData.name || ''} onChange={handleChange} className="form-input" /></div>
               <div><label>Roll No (Optional)</label><input name="rollNo" value={formData.rollNo || ''} onChange={handleChange} className="form-input" /></div>
               <div><label>Department</label><input required name="department" value={formData.department || ''} onChange={handleChange} className="form-input" /></div>
-              <div>
-                <label>Category</label>
+              <div><label>Category</label>
                 <select name="category" value={formData.category || 'Student'} onChange={handleChange} className="form-input">
                   <option value="Student">Student</option>
                   <option value="Alumni">Alumni</option>
                   <option value="Coach">Coach</option>
                 </select>
               </div>
+              <div><label>Class of (Graduation Year)</label><input type="number" name="graduationYear" value={formData.graduationYear || ''} onChange={handleChange} className="form-input" /></div>
+              <div><label>Email (Gmail)</label><input type="email" name="email" value={formData.email || ''} onChange={handleChange} className="form-input" /></div>
+              <div><label>Contact Number</label><input name="contact" value={formData.contact || ''} onChange={handleChange} className="form-input" /></div>
+              <div><label>WhatsApp Number</label><input name="whatsappNumber" value={formData.whatsappNumber || ''} onChange={handleChange} className="form-input" /></div>
+              <div><label>Home Address</label><input name="homeAddress" value={formData.homeAddress || ''} onChange={handleChange} className="form-input" /></div>
+              <div><label>Bio</label><textarea name="bio" value={formData.bio || ''} onChange={handleChange} className="form-input" style={{ minHeight: '100px' }} /></div>
               <div>
                 <label>Athlete Photo</label>
                 <input type="file" name="photo" accept="image/*" onChange={handleChange} className="form-input" style={{ padding: '0.5rem' }} />
