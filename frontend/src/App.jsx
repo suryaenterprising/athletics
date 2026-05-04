@@ -6,6 +6,7 @@ import AthleteDirectory from './pages/AthleteDirectory';
 import Events from './pages/Events';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
+import AthleteProfile from './pages/AthleteProfile';
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/athletes" element={<AthleteDirectory />} />
+            <Route path="/athletes/:id" element={<AthleteProfile />} />
             <Route path="/events" element={<Events />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin/dashboard" element={<AdminDashboard />} />

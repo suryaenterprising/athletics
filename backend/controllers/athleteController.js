@@ -75,6 +75,7 @@ const createAthlete = async (req, res) => {
         photoUrl = result.secure_url;
         photoPublicId = result.public_id;
       } catch (uploadError) {
+        console.error('Cloudinary Error:', uploadError);
         return res.status(400).json({ message: 'Image upload failed. Please check your Cloudinary credentials in .env' });
       }
     }
